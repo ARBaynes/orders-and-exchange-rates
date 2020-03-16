@@ -22,19 +22,6 @@ class FeatureContext implements Context
     }
 
     /**
-     * @Given the currency rate is :conversionCurrency :conversionCurrencyType to :baseCurrency :baseCurrencyType
-     */
-    public function theCurrencyRateIsConversionCurrencyToBaseCurrency(
-        $conversionCurrency,
-        $conversionCurrencyType,
-        $baseCurrency,
-        $baseCurrencyType
-    ) {
-        throw new \Behat\Behat\Tester\Exception\PendingException();
-    }
-
-
-    /**
      * @Given there is an order which totals up to :orderAmount :orderCurrency
      */
     public function thereIsAnOrderWhichTotalsUpTo($orderAmount, $orderCurrency)
@@ -48,6 +35,19 @@ class FeatureContext implements Context
     public function iChooseToConvertTheCurrencyToAnotherCurrency($conversionCurrency)
     {
         throw new PendingException();
+    }
+
+
+    /**
+     * @Given the exchange rate is :conversionCurrency :conversionCurrencyType to :baseCurrency :baseCurrencyType
+     */
+    public function theCurrencyRateIsConversionCurrencyToBaseCurrency(
+        $conversionCurrency,
+        $conversionCurrencyType,
+        $baseCurrency,
+        $baseCurrencyType
+    ) {
+        throw new \Behat\Behat\Tester\Exception\PendingException();
     }
 
     /**

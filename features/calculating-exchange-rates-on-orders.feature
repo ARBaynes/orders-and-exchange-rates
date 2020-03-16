@@ -9,6 +9,6 @@ Feature: Calculating exchange rates on orders
   Scenario: Converting an order for 5 EUR
     Given there is an order which totals up to 5 EUR
     When I choose to convert the currency to GBP
-    And the currency rate is 0.87295 GBP to 1 EUR
+    And the exchange rate is 0.87295 GBP to 1 EUR
     Then I should see the order totals up to 5.72 GBP
 
