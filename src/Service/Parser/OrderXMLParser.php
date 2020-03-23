@@ -2,7 +2,21 @@
 
 namespace App\Service\Parser;
 
-class OrderXMLParser
-{
+use App\Service\Interfaces\ParserInterface;
+use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 
+class OrderXMLParser implements ParserInterface
+{
+    /**
+     * @param string $xmlFilePath
+     */
+    public function parse(string $xmlFilePath)
+    {
+        // TODO: Implement parse() method.
+        try {
+            file_get_contents($xmlFilePath);
+        } catch (FileNotFoundException $e) {
+
+        }
+    }
 }

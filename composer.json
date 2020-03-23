@@ -12,7 +12,9 @@
         "symfony/yaml": "5.0.*"
     },
     "require-dev": {
-        "behat/behat": "^3.6"
+        "behat/behat": "^3.6",
+        "phpspec/phpspec": "^6.1",
+        "symfony/test-pack": "^1.0"
     },
     "config": {
         "preferred-install": {

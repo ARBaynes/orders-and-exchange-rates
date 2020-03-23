@@ -1,13 +1,16 @@
 <?php
 
-
 namespace App\Service;
 
+use App\Service\Interfaces\ExchangeRateConverterServiceInterface;
 
-class ExchangeRateConverterService
+class ExchangeRateConverterService implements ExchangeRateConverterServiceInterface
 {
-    public function convert()
+    /**
+     * @inheritDoc
+     */
+    public function convert(float $baseAmount, float $quoteAmount): float
     {
-
+        return $baseAmount * $quoteAmount;
     }
 }

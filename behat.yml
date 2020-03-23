@@ -1,0 +1,12 @@
+# behat.yml
+
+default:
+  suites:
+    exchange_features:
+      paths:
+        - '%paths.base%/features'
+        - '%paths.base%/features/bootstrap'
+      contexts:
+        - ExchangeContext:
+            exchangeRateFilepath: data/ExchangeRates.xml
+            testOrdersFilepath: data/Orders.xml
