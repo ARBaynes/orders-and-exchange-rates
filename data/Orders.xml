@@ -6,8 +6,8 @@
         <currency>GBP</currency>
         <date>01/01/2016</date>
         <products>
-            <product title=”Rimmel Lasting Finish Lipstick 4g” price=”4.99” />
-            <product title=”Sebamed Shampoo 200ml” price=”4.99” />
+            <product title="Rimmel Lasting Finish Lipstick 4g" price="4.99" />
+            <product title="Sebamed Shampoo 200ml" price="4.99" />
         </products>
         <total>9.98</total>
     </order>
@@ -16,8 +16,8 @@
         <currency>EUR</currency>
         <date>02/01/2016</date>
         <products>
-            <product title=”GHD Hair Straighteners” price=”99.99” />
-            <product title=”Redken Shampure Shampoo” price=”19.99” />
+            <product title="GHD Hair Straighteners" price="99.99" />
+            <product title="Redken Shampure Shampoo" price="19.99" />
         </products>
         <total>119.98</total>
     </order>

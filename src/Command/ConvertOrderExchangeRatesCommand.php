@@ -2,7 +2,10 @@
 
 namespace App\Command;
 
+use App\Entity\Order;
 use App\Service\ExchangeRateConverterService;
+use App\Service\Parser\ExchangeRateXMLParser;
+use App\Service\Parser\OrderXMLParser;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -13,12 +16,31 @@ class ConvertOrderExchangeRatesCommand extends Command
     protected static $defaultName = 'order:convert-exchange-rate';
 
     /**
+     * @var OrderXMLParser
+     */
+    private $orderXMLParser;
+    /**
      * @var ExchangeRateConverterService
      */
     private $exchangeRateConverter;
+    /**
+     * @var ExchangeRateXMLParser
+     */
+    private $exchangeRateXMLParser;
 
-    public function __construct(ExchangeRateConverterService $exchangeRateConverter)
-    {
+    /**
+     * ConvertOrderExchangeRatesCommand constructor.
+     * @param OrderXMLParser $orderXMLParser
+     * @param ExchangeRateXMLParser $exchangeRateXMLParser
+     * @param ExchangeRateConverterService $exchangeRateConverter
+     */
+    public function __construct(
+        OrderXMLParser $orderXMLParser,
+        ExchangeRateXMLParser $exchangeRateXMLParser,
+        ExchangeRateConverterService $exchangeRateConverter
+    ) {
+        $this->orderXMLParser = $orderXMLParser;
+        $this->exchangeRateXMLParser = $exchangeRateXMLParser;
         $this->exchangeRateConverter = $exchangeRateConverter;
 
         parent::__construct();
@@ -40,6 +62,8 @@ class ConvertOrderExchangeRatesCommand extends Command
         $exchangeRatePath = $input->getArgument('exchangeRatePath');
         $currencyCode = $input->getArgument('currencyCode');
 
+        $orders = $this->orderXMLParser->parse($orderPath);
+        $exchangeRates = $this->exchangeRateXMLParser->parse($exchangeRatePath);
 
         $output->writeln("<info>Transforming into currency {$currencyCode}</info>");
         return 0;
