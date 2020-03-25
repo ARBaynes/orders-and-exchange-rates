@@ -2,10 +2,16 @@
 
 namespace App\Command;
 
+use App\Entity\ConversionRate;
+use App\Entity\Currency;
 use App\Entity\Order;
+use App\Entity\Product;
+use App\Exception\IncorrectCurrenciesException;
 use App\Service\ExchangeRateConverterService;
 use App\Service\Parser\ExchangeRateXMLParser;
 use App\Service\Parser\OrderXMLParser;
+use App\Service\XmlOutput\OrderXMLOutputService;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -15,57 +21,95 @@ class ConvertOrderExchangeRatesCommand extends Command
 {
     protected static $defaultName = 'order:convert-exchange-rate';
 
-    /**
-     * @var OrderXMLParser
-     */
+    /** @var string */
+    private $orderPath;
+    /** @var string */
+    private $exchangeRatePath;
+    /** @var OrderXMLParser */
     private $orderXMLParser;
-    /**
-     * @var ExchangeRateConverterService
-     */
-    private $exchangeRateConverter;
-    /**
-     * @var ExchangeRateXMLParser
-     */
+    /** @var ExchangeRateXMLParser */
     private $exchangeRateXMLParser;
+    /** @var OrderXMLOutputService */
+    private $orderXMLOutputService;
 
     /**
      * ConvertOrderExchangeRatesCommand constructor.
+     * @param string $orderPath
+     * @param string $exchangeRatePath
      * @param OrderXMLParser $orderXMLParser
      * @param ExchangeRateXMLParser $exchangeRateXMLParser
-     * @param ExchangeRateConverterService $exchangeRateConverter
+     * @param OrderXMLOutputService $orderXMLOutputService
      */
     public function __construct(
+        string $orderPath,
+        string $exchangeRatePath,
         OrderXMLParser $orderXMLParser,
         ExchangeRateXMLParser $exchangeRateXMLParser,
-        ExchangeRateConverterService $exchangeRateConverter
+        OrderXMLOutputService $orderXMLOutputService
     ) {
+        $this->orderPath = $orderPath;
+        $this->exchangeRatePath = $exchangeRatePath;
         $this->orderXMLParser = $orderXMLParser;
         $this->exchangeRateXMLParser = $exchangeRateXMLParser;
-        $this->exchangeRateConverter = $exchangeRateConverter;
+        $this->orderXMLOutputService = $orderXMLOutputService;
 
         parent::__construct();
     }
 
     protected function configure(): void
     {
-        $this
-            ->addArgument('orderPath', InputArgument::REQUIRED, 'The path to the XML order file.')
-            ->addArgument('exchangeRatePath', InputArgument::REQUIRED, 'The path to the exchange rates XML file.')
-            ->addArgument('currencyCode', InputArgument::REQUIRED, 'The currency code you wish to convert the order to.')
-            ->setDescription('Converts the currency of an order into another.');
+        $this->setDescription('Converts the currency of an order into the most recent non-base exchange rate found.');
     }
 
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int
+     * @throws \Exception
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $orderPath = $input->getArgument('orderPath');
-        $exchangeRatePath = $input->getArgument('exchangeRatePath');
-        $currencyCode = $input->getArgument('currencyCode');
 
-        $orders = $this->orderXMLParser->parse($orderPath);
-        $exchangeRates = $this->exchangeRateXMLParser->parse($exchangeRatePath);
+        $output->writeln('<info>Loading XML files</info>');
 
-        $output->writeln("<info>Transforming into currency {$currencyCode}</info>");
+        $orders = $this->orderXMLParser->parse($this->orderPath);
+        $exchangeRates = $this->exchangeRateXMLParser->parse($this->exchangeRatePath);
+
+        $output->writeln('<info>Transforming currencies</info>');
+
+        # Future improvement: Move the below logic into seperate services so that it is cleaner and more readable.
+
+        $convertedOrders = [];
+        /** @var Order $order */
+        foreach ($orders->toArray() as $order) {
+            /** @var Currency $baseCurrency */
+            $baseCurrency = $exchangeRates->filter(static function (Currency $currency) use ($order) {
+                return $currency->getCode() === $order->getCurrencyCode();
+            })->first();
+
+            $baseCurrency->getConversionRates()->getIterator()->uasort(static function (ConversionRate $a, ConversionRate $b) {
+                return ($a->getDate() < $b->getDate()) ? -1 : 1;
+            });
+
+            /** @var ConversionRate $quoteRate */
+            $quoteRate = $baseCurrency->getConversionRates()->last();
+
+            $output->writeln(
+                "<info>Converting {$order->getTotal()} {$order->getCurrencyCode()} with conversion rate {$quoteRate->getQuoteCurrencyAmount()} {$quoteRate->getQuoteCurrencyCode()}</info>");
+
+            $order->setCurrencyCode($quoteRate->getQuoteCurrencyCode());
+            $order->getProducts()->map(
+                static function(Product $product) use ($quoteRate) {
+                    $product->setPrice(ExchangeRateConverterService::convert($product->getPrice(), $quoteRate->getQuoteCurrencyAmount()));
+                }
+            );
+            $order->setTotal($order->calculateTotalFromProducts());
+            $convertedOrders[] = $order;
+        }
+
+        $outputSuccess = $this->orderXMLOutputService->output(new ArrayCollection($convertedOrders));
+
         return 0;
     }
 }

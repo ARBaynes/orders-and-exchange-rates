@@ -9,5 +9,5 @@ interface ExchangeRateConverterServiceInterface
      * @param float $quoteAmount
      * @return float
      */
-    public function convert(float $baseAmount, float $quoteAmount): float;
+    public static function convert(float $baseAmount, float $quoteAmount): float;
 }

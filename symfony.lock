@@ -199,6 +199,9 @@
     "symfony/service-contracts": {
         "version": "v2.0.1"
     },
+    "symfony/templating": {
+        "version": "v5.0.5"
+    },
     "symfony/test-pack": {
         "version": "v1.0.6"
     },
@@ -226,6 +229,9 @@
     },
     "symfony/yaml": {
         "version": "v5.0.5"
+    },
+    "twig/twig": {
+        "version": "v3.0.3"
     },
     "webmozart/assert": {
         "version": "1.7.0"

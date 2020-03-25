@@ -12,7 +12,7 @@ class ExchangeRateXMLParser implements ParserInterface
 {
     /**
      * @param string $xmlFilePath
-     * @return ArrayCollection
+     * @return ArrayCollection<Currency>
      */
     public function parse(string $xmlFilePath): ArrayCollection
     {
@@ -53,13 +53,15 @@ class ExchangeRateXMLParser implements ParserInterface
     ): ArrayCollection {
         $conversionRates = [];
         foreach ($currencyXMLElement->children()->rateHistory->children() as $rateCurrency) {
-            $rate = ($rateCurrency->children()[0]->attributes()->code !== $baseCurrencyCode) ?
-                $rateCurrency->children()[0] : $rateCurrency->children()[1];
-            $conversionRates[] = ConversionRate::build(
-                DateConversionService::convert($rateCurrency->attributes()->date),
-                $rate->attributes()->code,
-                (float) $rate->attributes()->value
-            );
+            foreach ($rateCurrency->children() as $rate) {
+                if ($rate->attributes()->code->__toString() !== $baseCurrencyCode) {
+                    $conversionRates[] = ConversionRate::build(
+                        DateConversionService::convert($rateCurrency->attributes()->date),
+                        $rate->attributes()->code,
+                        (float) $rate->attributes()->value
+                    );
+                }
+            }
         }
         return new ArrayCollection($conversionRates);
     }

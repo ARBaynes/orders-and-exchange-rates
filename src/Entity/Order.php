@@ -107,4 +107,39 @@ class Order
         return $this->total;
     }
 
+    /**
+     * @param string $currencyCode
+     */
+    public function setCurrencyCode(string $currencyCode): void
+    {
+        $this->currencyCode = $currencyCode;
+    }
+
+    /**
+     * @param ArrayCollection<Product> $products
+     */
+    public function setProducts(ArrayCollection $products): void
+    {
+        $this->products = $products;
+    }
+
+    /**
+     * @param float|null $total
+     */
+    public function setTotal(?float $total): void
+    {
+        $this->total = $total ?? $this->calculateTotalFromProducts();
+    }
+
+    /**
+     * @return float
+     */
+    public function calculateTotalFromProducts(): float
+    {
+        $total = 0.00;
+        foreach ($this->getProducts()->toArray() as $product) {
+            $total += $product->getPrice();
+        }
+        return round($total, 2);
+    }
 }

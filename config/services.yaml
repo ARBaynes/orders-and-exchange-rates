@@ -4,6 +4,8 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
+    exchange_rate_path: 'data/ExchangeRates.xml'
+    orders_path: 'data/Orders.xml'
 
 services:
     # default configuration for services in *this* file
@@ -23,4 +25,11 @@ services:
         resource: '../src/Controller'
         tags: ['controller.service_arguments']
 
-    App\Service\ExchangeRateConverterService: ~
+    App\Service\XmlOutput\OrderXMLOutputService:
+        autowire: true
+
+    App\Command\ConvertOrderExchangeRatesCommand:
+        autowire: true
+        arguments:
+            $orderPath: '%orders_path%'
+            $exchangeRatePath: '%exchange_rate_path%'

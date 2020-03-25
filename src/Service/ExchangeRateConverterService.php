@@ -9,8 +9,8 @@ class ExchangeRateConverterService implements ExchangeRateConverterServiceInterf
     /**
      * @inheritDoc
      */
-    public function convert(float $baseAmount, float $quoteAmount): float
+    public static function convert(float $baseAmount, float $quoteAmount): float
     {
-        return $baseAmount * $quoteAmount;
+        return round($baseAmount * $quoteAmount, 2);
     }
 }
