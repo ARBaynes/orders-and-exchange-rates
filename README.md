@@ -1,3 +1,5 @@
 # Orders and Exchange Rates
 
-`bin/console order:convert-exchange-rates`
+* Run the command: `bin/console order:convert-exchange-rates`
+
+* Run the tests: `make test-suite`
