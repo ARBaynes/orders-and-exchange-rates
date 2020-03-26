@@ -5,8 +5,6 @@ namespace App\Command;
 use App\Entity\ConversionRate;
 use App\Entity\Currency;
 use App\Entity\Order;
-use App\Entity\Product;
-use App\Service\ExchangeRateConverterService;
 use App\Service\OrderConversionService;
 use App\Service\Parser\ExchangeRateXMLParser;
 use App\Service\Parser\OrderXMLParser;
@@ -18,7 +16,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class ConvertOrderExchangeRatesCommand extends Command
 {
-    protected static $defaultName = 'order:convert-exchange-rate';
+    protected static $defaultName = 'order:convert-exchange-rates';
 
     /** @var string */
     private $orderPath;
