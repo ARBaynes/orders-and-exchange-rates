@@ -11,6 +11,12 @@ class ExchangeRateConverterService implements ExchangeRateConverterServiceInterf
      */
     public static function convert(float $baseAmount, float $quoteAmount): float
     {
-        return round($baseAmount * $quoteAmount, 2);
+        return round(
+            (
+                $quoteAmount < 1 && $quoteAmount > 0 ?
+                    $baseAmount / $quoteAmount :$baseAmount * $quoteAmount
+            ),
+            2
+        );
     }
 }

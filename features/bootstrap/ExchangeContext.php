@@ -1,46 +1,47 @@
 <?php
 
+use App\Entity\ConversionRate;
+use App\Entity\Order;
+use App\Entity\Product;
 use App\Exception\CurrencyConversionException;
-use App\Service\ExchangeRateConverterService;
-use Behat\Behat\Tester\Exception\PendingException;
 use Behat\Behat\Context\Context;
+use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * Defines application features from the specific context.
  */
 class ExchangeContext implements Context
 {
-    /** @var ExchangeRateConverterService */
-    private $exchangeRateConverter;
-    /** @var string */
-    private $exchangeRateFilepath;
-    /** @var string */
-    private $testOrdersFilepath;
-    
-    /** @var float */
-    private $baseCurrency;
-    /** @var float */
-    private $quoteCurrency;
-    /** @var float */
-    private $convertedCurrency;
+    /** @var ConversionRate */
+    private $conversionRate;
+    /** @var Order */
+    private $order;
+    /** @var Order */
+    private $convertedOrder;
 
-    /**
-     * FeatureContext constructor.
-     * @param string $exchangeRateFilepath
-     * @param string $testOrdersFilepath
-     */
-    public function __construct(string $exchangeRateFilepath, string $testOrdersFilepath) {
-        $this->exchangeRateFilepath = $exchangeRateFilepath;
-        $this->testOrdersFilepath = $testOrdersFilepath;
-        $this->exchangeRateConverter = new ExchangeRateConverterService();
+    public function __construct()
+    {
     }
 
     /**
-     * @Given there is an order which totals up to :orderAmount :orderCurrency
+     * @Given there is an order with id :id for :productOne at :productOnePrice :productOneCurrency and :productTwo at :productTwoPrice :productTwoCurrency that totals up to :orderTotal :orderCurrency
      */
-    public function thereIsAnOrderWhichTotalsUpTo($orderAmount, $orderCurrency)
-    {
-        throw new PendingException();
+    public function thereIsAnOrderWhichTotalsUpTo(
+        $id,
+        $productOne,
+        $productOnePrice,
+        $productOneCurrency,
+        $productTwo,
+        $productTwoPrice,
+        $productTwoCurrency,
+        $orderTotal,
+        $orderCurrency
+    ) {
+        $products = new ArrayCollection([
+            Product::build($productOne, $productOnePrice),
+            Product::build($productTwo, $productTwoPrice)
+        ]);
+        $this->order = Order::build($id, $orderCurrency, new DateTime(), $products, $orderTotal);
     }
 
     /**
@@ -57,27 +58,25 @@ class ExchangeContext implements Context
         $baseCurrency,
         $baseCurrencyType
     ) {
-        $this->baseCurrency = $baseCurrency;
-        $this->quoteCurrency = $quoteCurrency;
+        $this->conversionRate = ConversionRate::build(new DateTime(), $quoteCurrencyType, $quoteCurrency);
     }
 
     /**
      * @When I convert the currency to :quoteCurrencyType
      */
     public function iConvertTheCurrencyToAnotherCurrency($quoteCurrencyType) {
-        $this->convertedCurrency = $this->exchangeRateConverter->convert($this->baseCurrency, $this->quoteCurrency);
+        $this->convertedOrder = \App\Service\OrderConversionService::convert($this->order, $this->conversionRate);
     }
 
-
     /**
-     * @Then I should see the order totals up to :finalConvertedAmount GBP
+     * @Then I should see the order totals up to :finalConvertedAmount :convertedCurrency
      * @throws CurrencyConversionException
      */
-    public function iShouldSeeTheOrderTotalsUpToGbp($finalConvertedAmount)
+    public function iShouldSeeTheOrderTotalsUpToCurrency($finalConvertedAmount, $convertedCurrency)
     {
-        if ($finalConvertedAmount !== $this->convertedCurrency) {
+        if ((float) $finalConvertedAmount !== $this->convertedOrder->getTotal()) {
             throw new CurrencyConversionException(
-                "Expected {$finalConvertedAmount} did not match {$this->convertedCurrency}"
+                "Expected {$finalConvertedAmount} did not match {$this->convertedOrder->getTotal()}"
             );
         }
     }

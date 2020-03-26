@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<orders>
+{% for order in orders %}
+    <order>
+        <id>{{ order.id }}</id>
+        <currency>{{ order.currencycode }}</currency>
+        <date>{{ order.date|date("m/d/Y") }}</date>
+        <products>
+{% for product in order.products %}
+            <product title="{{ product.title }}" price="{{ product.price }}" />
+{% endfor %}
+        </products>
+        <total>{{ order.total }}</total>
+    </order>
+{% endfor %}
+</orders>

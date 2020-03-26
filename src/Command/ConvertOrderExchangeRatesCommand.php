@@ -6,14 +6,13 @@ use App\Entity\ConversionRate;
 use App\Entity\Currency;
 use App\Entity\Order;
 use App\Entity\Product;
-use App\Exception\IncorrectCurrenciesException;
 use App\Service\ExchangeRateConverterService;
+use App\Service\OrderConversionService;
 use App\Service\Parser\ExchangeRateXMLParser;
 use App\Service\Parser\OrderXMLParser;
 use App\Service\XmlOutput\OrderXMLOutputService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -78,7 +77,7 @@ class ConvertOrderExchangeRatesCommand extends Command
 
         $output->writeln('<info>Transforming currencies</info>');
 
-        # Future improvement: Move the below logic into seperate services so that it is cleaner and more readable.
+        # Future improvement: Move the below logic into separate services so that it is cleaner and more readable.
 
         $convertedOrders = [];
         /** @var Order $order */
@@ -96,19 +95,14 @@ class ConvertOrderExchangeRatesCommand extends Command
             $quoteRate = $baseCurrency->getConversionRates()->last();
 
             $output->writeln(
-                "<info>Converting {$order->getTotal()} {$order->getCurrencyCode()} with conversion rate {$quoteRate->getQuoteCurrencyAmount()} {$quoteRate->getQuoteCurrencyCode()}</info>");
+                "<info>Converting order {$order->getId()} -> {$order->getTotal()} {$order->getCurrencyCode()} to {$quoteRate->getQuoteCurrencyCode()} with conversion rate {$quoteRate->getQuoteCurrencyAmount()}</info>");
 
-            $order->setCurrencyCode($quoteRate->getQuoteCurrencyCode());
-            $order->getProducts()->map(
-                static function(Product $product) use ($quoteRate) {
-                    $product->setPrice(ExchangeRateConverterService::convert($product->getPrice(), $quoteRate->getQuoteCurrencyAmount()));
-                }
-            );
-            $order->setTotal($order->calculateTotalFromProducts());
-            $convertedOrders[] = $order;
+            $convertedOrders[] = OrderConversionService::convert($order, $quoteRate);
         }
 
         $outputSuccess = $this->orderXMLOutputService->output(new ArrayCollection($convertedOrders));
+
+        $output->writeln('<info>Command finished: '.($outputSuccess ? "Converted orders have been placed in '{$outputSuccess}'" : 'Failure').'</info>');
 
         return 0;
     }

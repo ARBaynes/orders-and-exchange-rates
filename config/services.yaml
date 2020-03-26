@@ -6,6 +6,7 @@
 parameters:
     exchange_rate_path: 'data/ExchangeRates.xml'
     orders_path: 'data/Orders.xml'
+    output_path: 'output/Orders.xml'
 
 services:
     # default configuration for services in *this* file
@@ -27,6 +28,8 @@ services:
 
     App\Service\XmlOutput\OrderXMLOutputService:
         autowire: true
+        arguments:
+            $outputFilePath: '%output_path%'
 
     App\Command\ConvertOrderExchangeRatesCommand:
         autowire: true
